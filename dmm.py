@@ -5,6 +5,7 @@ from BeautifulSoup import BeautifulSoup as bf
 import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
+
 def get_avlist():
   avlist=[]
   pat='[\w+\W+]+cid=([a-z]+)00([0-9]+)'
@@ -30,15 +31,35 @@ def get_avlist():
   return avlist
 def javbooks(avlist):
   s=requests.session()
+  j=0
   for i in avlist:
-    url = 'http://javbooks.com/serch_censored/'+i+'/serialall_1.htm'
+    url = 'http://javbooks.com/serch_censored/'+ i +'/serialall_1.htm'
     r = s.get(url)
     get_bt_url = bf(r.text)
     try:
-      print get_bt_url.find('div',{'class':'Po_topic_title'}).find('a')['href']
+      bt_url = get_bt_url.find('div',{'class':'Po_topic_title'}).find('a')['href']
+      r = s.get(bt_url)
+      result = bf(r.text)
+      print result.find('div',{'class':'dht_dl_title_content'}).find('a')['href']
     except:
-      print '---------'
-      print url
-      print '---------'
-      break
+      j = j+1
+      print i
+  print j
+
+def sukebei(avlist):
+  s=requests.session()
+  j=0
+  for i in avlist:
+    url = 'https://sukebei.nyaa.se/?page=search&cats=8_0&filter=0&term=' + i
+    r = s.get(url)
+    get_bt_url = bf(r.text)
+    try:
+      print get_bt_url.find('tr',{'class':'tlistrow trusted'}).find('td',{'class':'tlistname'}).find('a')['href']
+    except:
+      j = j+1
+      print i
+  print j
+
+#sukebei(get_avlist())
+#print("--------")
 javbooks(get_avlist())
