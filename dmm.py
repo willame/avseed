@@ -3,6 +3,9 @@ import requests
 import re
 from BeautifulSoup import BeautifulSoup as bf
 import sys
+import os
+import sqlite3
+conn=sqlite3.connect('id.db')
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -32,19 +35,27 @@ def get_avlist():
 def javbooks(avlist):
   s=requests.session()
   j=0
+  f = open('url.txt','w')
   for i in avlist:
-    url = 'http://javbooks.com/serch_censored/'+ i +'/serialall_1.htm'
-    r = s.get(url)
-    get_bt_url = bf(r.text)
-    try:
-      bt_url = get_bt_url.find('div',{'class':'Po_topic_title'}).find('a')['href']
-      r = s.get(bt_url)
-      result = bf(r.text)
-      print result.find('div',{'class':'dht_dl_title_content'}).find('a')['href']
-    except:
-      j = j+1
-      print i
+    a=conn.execute("select * from name where id=?",(i,))
+    if a.fetchone() != None:
+      url = 'http://javbooks.com/serch_censored/'+ i +'/serialall_1.htm'
+      r = s.get(url)
+      get_bt_url = bf(r.text)
+      try:
+        bt_url = get_bt_url.find('div',{'class':'Po_topic_title'}).find('a')['href']
+        r = s.get(bt_url)
+        result = bf(r.text)
+        #f.write(result.find('div',{'class':'dht_dl_title_content'}).find('a')['href']+str('\n'))
+        conn.execute("insert into name (id) values(?)",(i,))
+        os.system("start "+result.find('div',{'class':'dht_dl_title_content'}).find('a')['href'])
+        print "------------------------"
+        sleep(5)
+      except:
+        j = j+1
+        print i
   print j
+  f.close()
 
 def sukebei(avlist):
   s=requests.session()
@@ -63,3 +74,5 @@ def sukebei(avlist):
 #sukebei(get_avlist())
 #print("--------")
 javbooks(get_avlist())
+conn.commit()
+conn.close()
